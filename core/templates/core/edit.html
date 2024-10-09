@@ -1,0 +1,140 @@
+{% extends 'core/base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% load static %}
+
+{% block css%}
+
+
+{% endblock %}
+
+{% block contenido %}
+<section class="hero-wrap hero-wrap-2" style="background-image: url({% static 'core/images/portada2.jpg' %});" data-stellar-background-ratio="0.5">
+  <div class="overlay"></div>
+  <div class="container">
+    <div class="row no-gutters slider-text align-items-end justify-content-center">
+      <div class="col-md-9 ftco-animate mb-5 text-center">
+        <p class="breadcrumbs mb-0"><span class="mr-2"><a href="{% url 'index' %}">Home <i class="fa fa-chevron-right"></i></a></span> <span>Settings <i class="fa fa-chevron-right"></i></span></p>
+        <h2 class="mb-0 bread">Mi perfil</h2>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container bootstrap snippets bootdey">
+  <div class="row">
+    <!-- left column -->
+
+    <!-- edit form column -->
+    <div class="col-md-12 personal-info mt-3">
+
+      <form method="post">
+        {% csrf_token %}
+        {{ user_form | crispy }}
+
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-dar btn-lg">Editar Perfil</button>
+        </div>
+      </form>
+      <form method="post">
+        {% csrf_token %}
+        {{ donation_form | crispy }}
+        {{donacion}}
+        <input type="hidden" id="donacion_value" value="{{ donation_form.donacion.value }}">
+        <div class="text-center mt-4">
+          <div id="btnPaypal"></div>
+        </div>
+      </form>
+      
+      
+      <div class="text-center mt-4">
+        <button onclick="eliminarPerfil()" class="btn btn-danger">Eliminar Perfil</button>
+      </div>
+      
+      <div class="text-center mt-4">
+        {% if suscriptor.es_suscriptor %}
+        <form method="post" action="{% url 'cancelar_suscripcion' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-lg">Cancelar Suscripción</button>
+        </form>
+        <h3 class="mt-4">Tu cuenta está suscrita. Se ha aplicado un descuento del 5% en tu última donación. Esta será cobrada mensualmente.</h3>
+        <h3>Descuento actual: {{ suscriptor.descuento }}%</h3>
+        {% endif %}
+      </div>
+
+
+
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock %}
+{% block js %}
+<script src="https://www.paypalobjects.com/api/checkout.js"></script>
+<script>
+	paypal.Button.render({
+		env: 'sandbox',
+		client:{
+			sandbox: 'ATxCimaAzzyxHkBd9dm3rV6YjpAmDVOjFN-PUd-qK2P-DT8FtUq3D1f4cFx1utuqNjAF8x_fC8opwhjT',
+			production: 'demo_production_client_id'
+		},
+		locale:'es_CL',
+		style:{
+			size: 'large',
+			color: 'black',
+			shape: 'rect',
+		},
+		commit: true,
+		payment: function (data,actions){
+			return actions.payment.create({
+				transactions: [{
+					amount:{
+						total: '{{ donacion }}',
+						currency: 'USD'
+					}
+				}]
+			});
+		},
+		onAuthorize: function (data, actions) {
+			return actions.payment.execute().then(function(){
+				Swal.fire({
+			title: 'WAJUUUUUUUUUU',
+			text: 'PAGO HECHO',
+			icon: 'success',
+			confirmButtonColor: '#3085d6',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'Pa casa platita'
+			});
+
+		});
+ 
+
+
+
+		},
+		onCancel(data){
+			Swal.fire({
+			title: 'BUUUUUUUUUU',
+			text: 'WN APAGAOOOOO',
+			icon: 'error',
+			confirmButtonColor: '#3085d6',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'Chao platita'
+			});
+		},
+		onError(data){
+			Swal.fire({
+			title: 'KE PASOOO?',
+			text: 'LA BAJAAA',
+			icon: 'error',
+			confirmButtonColor: '#3085d6',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'ME CAGOOOO'
+			});
+		}
+	},'#btnPaypal');
+</script>
+{% endblock %}
